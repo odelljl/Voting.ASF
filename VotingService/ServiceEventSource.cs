@@ -32,6 +32,8 @@ namespace VotingService
         {
             public const EventKeywords Requests = (EventKeywords)0x1L;
             public const EventKeywords ServiceInitialization = (EventKeywords)0x2L;
+
+            public const EventKeywords HealthReport = (EventKeywords)0x4L;
         }
         #endregion
 
@@ -141,25 +143,40 @@ namespace VotingService
         // These activities can be automatically picked up by debugging and profiling tools, which can compute their execution time, child activities,
         // and other statistics.
         private const int ServiceRequestStartEventId = 5;
-        [Event(ServiceRequestStartEventId, Level = EventLevel.Informational, Message = "Service request '{0}' started", Keywords = Keywords.Requests)]
-        public void ServiceRequestStart(string requestTypeName)
+        [Event(ServiceRequestStartEventId, Level = EventLevel.Informational, Message = "Service request '{0}' started. ActivityId: {1}.", Keywords = Keywords.Requests)]
+        public void ServiceRequestStart(string requestTypeName, string activityId)
         {
-            WriteEvent(ServiceRequestStartEventId, requestTypeName);
+            WriteEvent(ServiceRequestStartEventId, requestTypeName, activityId);
         }
 
         private const int ServiceRequestStopEventId = 6;
-        [Event(ServiceRequestStopEventId, Level = EventLevel.Informational, Message = "Service request '{0}' finished", Keywords = Keywords.Requests)]
-        public void ServiceRequestStop(string requestTypeName)
+        [Event(ServiceRequestStopEventId, Level = EventLevel.Informational, Message = "Service request '{0}' finished. ActivityId: {1}.", Keywords = Keywords.Requests)]
+        public void ServiceRequestStop(string requestTypeName, string activityId)
         {
-            WriteEvent(ServiceRequestStopEventId, requestTypeName);
+            WriteEvent(ServiceRequestStopEventId, requestTypeName, activityId);
         }
 
         private const int ServiceRequestFailedEventId = 7;
-        [Event(ServiceRequestFailedEventId, Level = EventLevel.Error, Message = "Service request '{0}' failed", Keywords = Keywords.Requests)]
-        public void ServiceRequestFailed(string requestTypeName, string exception)
+        [Event(ServiceRequestFailedEventId, Level = EventLevel.Error, Message = "Service request '{0}' failed. ActivityId: {1}.", Keywords = Keywords.Requests)]
+        public void ServiceRequestFailed(string requestTypeName, string exception, string activityId)
         {
-            WriteEvent(ServiceRequestFailedEventId, exception);
+            WriteEvent(ServiceRequestFailedEventId, exception, activityId);
         }
+
+        private const int HealthReportEventId = 100;
+        [Event(HealthReportEventId, Level = EventLevel.LogAlways, Message = "Health report. Source '{0}' property {1} is {2}. Partition: {3}, Instance or Replica: {4} Desc: {5}.", Keywords = Keywords.HealthReport)]
+        public void HealthReport(string healthSourceId, string name, string state, Guid partition, long instanceOrReplica, string description)
+        {
+            WriteEvent(HealthReportEventId, healthSourceId, name, state, partition, instanceOrReplica, description);
+        }
+
+        private const int HealthReportIntervalChangedEventId = 101;
+        [Event(HealthReportIntervalChangedEventId, Level = EventLevel.Verbose, Message = "Health report interval changed to {4} seconds for {0} property {1}. Partition: {2} Instance or Replica: {3}.", Keywords = Keywords.HealthReport)]
+        public void HealthReportIntervalChanged(string healthSourceId, string name, Guid partition, long instanceOrReplica, int duration)
+        {
+            WriteEvent(HealthReportIntervalChangedEventId, healthSourceId, name, partition, instanceOrReplica, duration);
+        }
+
         #endregion
 
         #region Private methods
